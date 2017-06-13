@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="FinderView">
+        <attr name="backgroundColor" format="color" />
+        <attr name="contentColor" format="color" />
+        <attr name="strokeColor" format="color" />
+        <attr name="contentSize" format="dimension" />
+        <attr name="contentWidth" format="dimension" />
+        <attr name="contentHeight" format="dimension" />
+        <attr name="contentPaddingTop" format="dimension" />
+        <attr name="contentPaddingLeft" format="dimension" />
+        <attr name="contentConerMargin" format="dimension" />
+        <attr name="contentConer" format="reference" />
+        <attr name="contentLine" format="reference" />
+        <attr name="lineAnimatorDuration" format="integer" />
+        <attr name="imageDataScale" format="fraction" />
+    </declare-styleable>
+</resources>
