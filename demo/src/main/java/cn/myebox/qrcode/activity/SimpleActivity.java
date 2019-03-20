@@ -1,8 +1,10 @@
 package cn.myebox.qrcode.activity;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
 import com.google.zxing.Result;
@@ -18,9 +20,8 @@ public class SimpleActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.finderview_layout);
-        scan = (ScanLayout) findViewById(R.id.finderview);
-        @SuppressLint("ShowToast")
-        final Toast toast = Toast.makeText(this, null, Toast.LENGTH_SHORT);
+        scan = findViewById(R.id.finderview);
+        @SuppressLint("ShowToast") final Toast toast = Toast.makeText(this, null, Toast.LENGTH_SHORT);
         scan.setScanResultCallback(new ScanResultCallback() {
             @Override
             public boolean handleDecode(Result result) {
@@ -29,6 +30,7 @@ public class SimpleActivity extends Activity {
                 return true;
             }
         });
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 100);
     }
 
     @Override

@@ -9,10 +9,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
+
 import com.google.zxing.ResultPoint;
 
 
@@ -30,14 +32,15 @@ public final class FinderView extends View implements IFinderView {
      * full size when init, then half size after onMeasure
      */
     private int contentWidth, contentHeight;
+    private int halfContentWidth, halfContentHeight;
     private int left, top, cornerMargin;
     private BitmapDrawable corner, scanLine;
-    private Rect contentRect, backgroundRect, strokeRect, scanLineRect, imageDataRect;
-
+    private Rect contentRect, backgroundRect, strokeRect, imageDataRect;
+    private RectF scanLineRect;
     /**
      * the content rect conter point
      */
-    private Point p = new Point();
+    private Point contentCenter = new Point();
 
     public FinderView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -60,6 +63,9 @@ public final class FinderView extends View implements IFinderView {
         a.recycle();
         contentWidth = getEvenSize(contentWidth);
         contentHeight = getEvenSize(contentHeight);
+
+        halfContentWidth = contentWidth / 2;
+        halfContentHeight = contentHeight / 2;
     }
 
     private void useContentSizeWhenZero(TypedArray a) {
@@ -81,19 +87,17 @@ public final class FinderView extends View implements IFinderView {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         initOnMeasure();
+        System.out.println("getMeasuredHeight:" + getMeasuredHeight());
+        System.out.println("backgroundRectHeight:" + backgroundRect.height());
     }
 
     void initOnMeasure() {
-        if (contentRect == null) {
+        if (backgroundRect == null || backgroundRect.height() != getMeasuredHeight()) {
             initBgAndContentRect();
-            p.x = (contentRect.left + contentRect.right) / 2;
-            p.y = (contentRect.top + contentRect.bottom) / 2;
+            contentCenter.x = contentRect.centerX();
+            contentCenter.y = contentRect.centerY();
             initStrokeRect();
             initScanLineRect();
-
-            //half size
-            contentWidth /= 2;
-            contentHeight /= 2;
             initLineAnimation();
         }
     }
@@ -119,11 +123,11 @@ public final class FinderView extends View implements IFinderView {
             int height = scanLine.getBitmap().getHeight();
             if (scanLine.getBitmap().getWidth() < contentWidth) {
                 int scanLineLeft = (contentWidth - scanLine.getBitmap().getWidth()) / 2;
-                scanLineRect = new Rect(contentRect.left + scanLineLeft, contentRect.top, contentRect.right - scanLineLeft, contentRect.top + height);
+                scanLineRect = new RectF(contentRect.left + scanLineLeft, contentRect.top, contentRect.right - scanLineLeft, contentRect.top + height);
             } else {
-                scanLineRect = new Rect(contentRect.left, contentRect.top, contentRect.right, contentRect.top + height);
+                scanLineRect = new RectF(contentRect.left, contentRect.top, contentRect.right, contentRect.top + height);
             }
-            scanLineRect.top = (contentRect.top + contentRect.bottom) / 2;
+            scanLineRect.top = (contentRect.top + contentRect.bottom) / 2f;
             scanLineRect.bottom = scanLineRect.top + height;
         }
     }
@@ -148,14 +152,14 @@ public final class FinderView extends View implements IFinderView {
 
         if (corner != null) {//draw corner
             canvas.save();
-            canvas.translate(p.x, p.y);
-            canvas.drawBitmap(corner.getBitmap(), cornerMargin - contentWidth, cornerMargin - contentHeight, null);
+            canvas.translate(contentCenter.x, contentCenter.y);
+            canvas.drawBitmap(corner.getBitmap(), cornerMargin - halfContentWidth, cornerMargin - halfContentHeight, null);
             canvas.rotate(90);
-            canvas.drawBitmap(corner.getBitmap(), cornerMargin - contentHeight, cornerMargin - contentWidth, null);
+            canvas.drawBitmap(corner.getBitmap(), cornerMargin - halfContentHeight, cornerMargin - halfContentWidth, null);
             canvas.rotate(90);
-            canvas.drawBitmap(corner.getBitmap(), cornerMargin - contentWidth, cornerMargin - contentHeight, null);
+            canvas.drawBitmap(corner.getBitmap(), cornerMargin - halfContentWidth, cornerMargin - halfContentHeight, null);
             canvas.rotate(90);
-            canvas.drawBitmap(corner.getBitmap(), cornerMargin - contentHeight, cornerMargin - contentWidth, null);
+            canvas.drawBitmap(corner.getBitmap(), cornerMargin - halfContentHeight, cornerMargin - halfContentWidth, null);
             canvas.restore();
         }
 
@@ -185,8 +189,8 @@ public final class FinderView extends View implements IFinderView {
     public Rect getDecodeRetangle() {
         if (imageDataRect == null) {
             float scale = imageDataScale >= 1 ? imageDataScale - 1 : 0;
-            int sw = (int) ((contentRect.right - contentRect.left) * scale / 2);
-            int sh = (int) ((contentRect.bottom - contentRect.top) * scale / 2);
+            int sw = (int) (contentRect.width() * scale / 2);
+            int sh = (int) (contentRect.height() * scale / 2);
             imageDataRect = new Rect(contentRect.left - sw, contentRect.top - sh, contentRect.right + sw, contentRect.bottom + sh);
         }
         return imageDataRect;
@@ -194,15 +198,15 @@ public final class FinderView extends View implements IFinderView {
 
     void initLineAnimation() {
         if (scanLineRect == null || isInEditMode()) return;
-        final int height = scanLineRect.bottom - scanLineRect.top;
-        ObjectAnimator lineAnimator = ObjectAnimator.ofInt(this, "y", contentRect.top, contentRect.bottom - height);
+        final float height = scanLineRect.bottom - scanLineRect.top;
+        ObjectAnimator lineAnimator = ObjectAnimator.ofFloat(null, "scanLine", contentRect.top, contentRect.bottom - height);
         lineAnimator.setDuration(lineAnimatorDuration);
         lineAnimator.setRepeatCount(ValueAnimator.INFINITE);
         lineAnimator.setRepeatMode(ValueAnimator.REVERSE);
         lineAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                scanLineRect.top = (int) animation.getAnimatedValue();
+                scanLineRect.top = (float) animation.getAnimatedValue();
                 scanLineRect.bottom = scanLineRect.top + height;
                 invalidate();
             }
