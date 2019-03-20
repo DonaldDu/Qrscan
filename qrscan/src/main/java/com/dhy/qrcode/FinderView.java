@@ -94,6 +94,7 @@ public final class FinderView extends View implements IFinderView {
     void initOnMeasure() {
         if (backgroundRect == null || backgroundRect.height() != getMeasuredHeight()) {
             initBgAndContentRect();
+            initDecodeRetangle(contentRect);
             contentCenter.x = contentRect.centerX();
             contentCenter.y = contentRect.centerY();
             initStrokeRect();
@@ -184,15 +185,16 @@ public final class FinderView extends View implements IFinderView {
 
     }
 
+    private void initDecodeRetangle(Rect contentRect) {
+        float scale = imageDataScale >= 1 ? imageDataScale - 1 : 0;
+        int sw = (int) (contentRect.width() * scale / 2);
+        int sh = (int) (contentRect.height() * scale / 2);
+        imageDataRect = new Rect(contentRect.left - sw, contentRect.top - sh, contentRect.right + sw, contentRect.bottom + sh);
+    }
+
     @NonNull
     @Override
     public Rect getDecodeRetangle() {
-        if (imageDataRect == null) {
-            float scale = imageDataScale >= 1 ? imageDataScale - 1 : 0;
-            int sw = (int) (contentRect.width() * scale / 2);
-            int sh = (int) (contentRect.height() * scale / 2);
-            imageDataRect = new Rect(contentRect.left - sw, contentRect.top - sh, contentRect.right + sw, contentRect.bottom + sh);
-        }
         return imageDataRect;
     }
 

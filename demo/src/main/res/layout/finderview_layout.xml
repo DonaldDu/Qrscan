@@ -21,5 +21,16 @@
             app:contentWidth="220dp"
             app:lineAnimatorDuration="1800"
             app:strokeColor="#ffffff" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="150dp"
+            android:background="#995C5058"
+            android:padding="5dp"
+            android:text="将二维码/条码放入框内，即可自动扫描"
+            android:textColor="@android:color/white"
+            android:textSize="12sp" />
     </com.dhy.qrcode.ScanLayout>
 </FrameLayout>
